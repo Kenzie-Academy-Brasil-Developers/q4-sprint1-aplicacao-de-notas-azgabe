@@ -58,4 +58,19 @@ app.get("/users", (_, res) => {
   res.json(database);
 });
 
+app.patch("/users/:cpf", verifyUserExistence, (req, res) => {
+  const { cpf: routeCpf } = req.params;
+  const { cpf: newCpf, name: newName } = req.body;
+
+  database.forEach((user) => {
+    if (user.cpf === routeCpf) {
+      user.name = newName !== undefined ? newName : user.name;
+      user.cpf = newCpf !== undefined ? newCpf : user.cpf;
+
+      res.status = 200;
+      res.json(user);
+    }
+  });
+});
+
 app.listen(3000, () => "Aplicação rodando em http://localhost:3000");
