@@ -6,7 +6,7 @@ app.use(express.json());
 
 let database = [];
 
-const verifyCpfAvailability = (req, res, next) => {
+const validateCpf = (req, res, next) => {
   const { cpf } = req.body;
   const cpfList = database.map((user) => user.cpf);
 
@@ -17,7 +17,7 @@ const verifyCpfAvailability = (req, res, next) => {
   return next();
 };
 
-const verifyUserExistence = (req, res, next) => {
+const verifyUser = (req, res, next) => {
   const { cpf } = req.params;
   const cpfList = database.map((user) => user.cpf);
 
@@ -28,7 +28,7 @@ const verifyUserExistence = (req, res, next) => {
   return next();
 };
 
-const verifyNoteExistence = (req, res, next) => {
+const verifyNote = (req, res, next) => {
   const { cpf, id } = req.params;
   const { notes } = database.find((user) => user.cpf === cpf);
   const idList = notes.map((note) => note.id);
@@ -40,7 +40,7 @@ const verifyNoteExistence = (req, res, next) => {
   return next();
 };
 
-app.post("/users", verifyCpfAvailability, (req, res) => {
+app.post("/users", validateCpf, (req, res) => {
   const { name, cpf } = req.body;
   const user = { id: uuidv4(), name, cpf, notes: [] };
 
@@ -53,7 +53,7 @@ app.get("/users", (_, res) => {
   res.status(200).json(database);
 });
 
-app.patch("/users/:cpf", verifyUserExistence, (req, res) => {
+app.patch("/users/:cpf", verifyUser, (req, res) => {
   const { cpf: routeCpf } = req.params;
   const { cpf: newCpf, name: newName } = req.body;
 
@@ -67,7 +67,7 @@ app.patch("/users/:cpf", verifyUserExistence, (req, res) => {
   });
 });
 
-app.delete("/users/:cpf", verifyUserExistence, (req, res) => {
+app.delete("/users/:cpf", verifyUser, (req, res) => {
   const { cpf: routeCpf } = req.params;
 
   database = database.filter((user) => user.cpf !== routeCpf);
@@ -75,4 +75,29 @@ app.delete("/users/:cpf", verifyUserExistence, (req, res) => {
   res.status(204).end();
 });
 
-app.listen(3000, () => "Aplicação rodando em http://localhost:3000");
+app.post("/users/:cpf/notes", verifyUser, (req, res) => {
+  const { cpf: routeCpf } = req.params;
+  const { title, content } = req.body;
+  const now = new Date();
+
+  const newNote = { id: uuidv4(), created_at: now, title, content };
+
+  database.forEach((user) => {
+    if (user.cpf === routeCpf) {
+      user.notes.push(newNote);
+
+      res.status(201).json({
+        message: `${newNote.title} was added into ${user.name}'s notes`,
+      });
+    }
+  });
+});
+
+app.get("/users/:cpf/notes", verifyUser, (req, res) => {
+  const { cpf: routeCpf } = req.params;
+  const { notes } = database.find((user) => user.cpf === routeCpf);
+
+  res.status(200).json(notes);
+});
+
+app.listen(3000, () => null);
