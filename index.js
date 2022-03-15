@@ -4,15 +4,14 @@ import { v4 as uuidv4 } from "uuid";
 const app = express();
 app.use(express.json());
 
-const database = [];
+let database = [];
 
 const verifyCpfAvailability = (req, res, next) => {
   const { cpf } = req.body;
   const cpfList = database.map((user) => user.cpf);
 
   if (cpfList.includes(cpf)) {
-    res.statusCode = 422;
-    return res.json({ error: "user already exists" });
+    return res.status(422).json({ error: "user already exists" });
   }
 
   return next();
@@ -23,8 +22,7 @@ const verifyUserExistence = (req, res, next) => {
   const cpfList = database.map((user) => user.cpf);
 
   if (!cpfList.includes(cpf)) {
-    res.statusCode = 404;
-    return res.json({ error: "user is not registered" });
+    return res.status(404).json({ error: "user is not registered" });
   }
 
   return next();
@@ -36,8 +34,7 @@ const verifyNoteExistence = (req, res, next) => {
   const idList = notes.map((note) => note.id);
 
   if (!idList.includes(id)) {
-    res.statusCode = 404;
-    return res.json({ error: "note is not registered" });
+    return res.status(404).json({ error: "note is not registered" });
   }
 
   return next();
@@ -49,13 +46,11 @@ app.post("/users", verifyCpfAvailability, (req, res) => {
 
   database.push(user);
 
-  res.statusCode = 201;
-  res.json(user);
+  res.status(201).json(user);
 });
 
 app.get("/users", (_, res) => {
-  res.status = 200;
-  res.json(database);
+  res.status(200).json(database);
 });
 
 app.patch("/users/:cpf", verifyUserExistence, (req, res) => {
@@ -67,10 +62,17 @@ app.patch("/users/:cpf", verifyUserExistence, (req, res) => {
       user.name = newName !== undefined ? newName : user.name;
       user.cpf = newCpf !== undefined ? newCpf : user.cpf;
 
-      res.status = 200;
-      res.json(user);
+      res.status(200).json(user);
     }
   });
+});
+
+app.delete("/users/:cpf", verifyUserExistence, (req, res) => {
+  const { cpf: routeCpf } = req.params;
+
+  database = database.filter((user) => user.cpf !== routeCpf);
+
+  res.status(204).end();
 });
 
 app.listen(3000, () => "Aplicação rodando em http://localhost:3000");
