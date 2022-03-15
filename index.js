@@ -53,4 +53,9 @@ app.post("/users", verifyCpfAvailability, (req, res) => {
   res.json(user);
 });
 
+app.get("/users", (_, res) => {
+  res.status = 200;
+  res.json(database);
+});
+
 app.listen(3000, () => "Aplicação rodando em http://localhost:3000");
