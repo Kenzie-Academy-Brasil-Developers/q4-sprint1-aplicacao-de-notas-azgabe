@@ -57,7 +57,7 @@ app.get("/users", (_, res) => {
   res.status(200).json(database);
 });
 
-app.patch("/users/:cpf", verifyUser, (req, res) => {
+app.patch("/users/:cpf", verifyUser, validateCpf, (req, res) => {
   const { cpf: routeCpf } = req.params;
   const { cpf: newCpf, name: newName } = req.body;
 
@@ -106,28 +106,22 @@ app.get("/users/:cpf/notes", verifyUser, (req, res) => {
   res.status(200).json(notes);
 });
 
-app.patch(
-  "/users/:cpf/notes/:id",
-  verifyUser,
-  verifyNote,
-  validateCpf,
-  (req, res) => {
-    const { cpf: routeCpf, id: routeId } = req.params;
-    const { title: newTitle, content: newContent } = req.body;
-    const { notes } = database.find((user) => user.cpf === routeCpf);
+app.patch("/users/:cpf/notes/:id", verifyUser, verifyNote, (req, res) => {
+  const { cpf: routeCpf, id: routeId } = req.params;
+  const { title: newTitle, content: newContent } = req.body;
+  const { notes } = database.find((user) => user.cpf === routeCpf);
 
-    const now = new Date();
+  const now = new Date();
 
-    notes.forEach((note) => {
-      if (note.id === routeId) {
-        note.title = newTitle !== undefined ? newTitle : note.title;
-        note.content = newContent !== undefined ? newContent : note.content;
-        note.updated_at = now;
+  notes.forEach((note) => {
+    if (note.id === routeId) {
+      note.title = newTitle !== undefined ? newTitle : note.title;
+      note.content = newContent !== undefined ? newContent : note.content;
+      note.updated_at = now;
 
-        res.status(200).json(note);
-      }
-    });
-  }
-);
+      res.status(200).json(note);
+    }
+  });
+});
 
 app.listen(3000, () => null);
