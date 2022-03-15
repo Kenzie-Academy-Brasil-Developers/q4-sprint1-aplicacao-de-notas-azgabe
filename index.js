@@ -124,4 +124,16 @@ app.patch("/users/:cpf/notes/:id", verifyUser, verifyNote, (req, res) => {
   });
 });
 
+app.delete("/users/:cpf/notes/:id", verifyUser, verifyNote, (req, res) => {
+  const { cpf: routeCpf, id: routeId } = req.params;
+
+  database.forEach((user) => {
+    if (user.cpf === routeCpf) {
+      user.notes = user.notes.filter((note) => note.id !== routeId);
+    }
+  });
+
+  res.status(204).end();
+});
+
 app.listen(3000, () => null);
