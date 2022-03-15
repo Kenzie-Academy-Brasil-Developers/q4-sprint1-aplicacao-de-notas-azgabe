@@ -6,7 +6,8 @@
   "author": "Gabriel Azevedo <gmarquesazti@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "uuid": "^8.3.2"
   },
   "type": "module",
   "scripts": {
