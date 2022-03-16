@@ -159,4 +159,4 @@ app.delete("/users/:cpf/notes/:id", verifyUser, verifyNote, (req, res) => {
   res.status(204).end();
 });
 
-app.listen(3000, () => null);
+app.listen(3000);
