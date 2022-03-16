@@ -14,14 +14,14 @@ const userSchema = yup.object().shape({
     .matches(/^(\d{3}.\d{3}.\d{3}-\d{2})|(\d{11})$/)
     .required(),
   name: yup.string().required(),
-  id: yup.string().default(uuidv4()),
+  id: yup.string().default(uuidv4),
 });
 
 const noteSchema = yup.object().shape({
   content: yup.string().required(),
   title: yup.string().required(),
   created_at: yup.date().default(() => new Date()),
-  id: yup.string().default(uuidv4()),
+  id: yup.string().default(uuidv4),
 });
 
 const checkCpf = (req, res, next) => {
@@ -87,7 +87,7 @@ app.patch("/users/:cpf", verifyUser, checkCpf, (req, res) => {
       user.name = newName !== undefined ? newName : user.name;
       user.cpf = newCpf !== undefined ? newCpf : user.cpf;
 
-      res.status(200).json(user);
+      res.status(200).json({ message: "User is updated", user });
     }
   });
 });

@@ -12,7 +12,7 @@
   },
   "type": "module",
   "scripts": {
-    "nodemon": "nodemon index.js"
+    "nodemon": "nodemon src/index.js"
   },
   "devDependencies": {
     "eslint": "^8.11.0",
