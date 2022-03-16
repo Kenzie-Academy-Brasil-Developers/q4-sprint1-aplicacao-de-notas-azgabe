@@ -1,5 +1,6 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
+import * as yup from "yup";
 
 const app = express();
 app.use(express.json());
@@ -43,14 +44,34 @@ const verifyNote = (req, res, next) => {
   return next();
 };
 
+const userSchema = yup.object().shape({
+  notes: yup.array().default(() => []),
+  cpf: yup
+    .string()
+    .matches(/^(\d{3}.\d{3}.\d{3}-\d{2})|(\d{11})$/)
+    .required(),
+  name: yup.string().required(),
+  id: yup.string().default(uuidv4()),
+});
+
+const noteSchema = yup.object().shape({
+  content: yup.string().required(),
+  title: yup.string().required(),
+  created_at: yup.date().default(() => new Date()),
+  id: yup.string().default(uuidv4()),
+});
+
 app.post("/users", validateCpf, (req, res) => {
-  const { name, cpf } = req.body;
+  userSchema
+    .validate(req.body)
+    .then((user) => {
+      database.push(user);
 
-  const user = { id: uuidv4(), name, cpf, notes: [] };
-
-  database.push(user);
-
-  res.status(201).json(user);
+      res.status(201).json(user);
+    })
+    .catch(() =>
+      res.status(400).json({ error: "fields either incorrect or missing" })
+    );
 });
 
 app.get("/users", (_, res) => {
@@ -81,21 +102,23 @@ app.delete("/users/:cpf", verifyUser, (req, res) => {
 
 app.post("/users/:cpf/notes", verifyUser, (req, res) => {
   const { cpf: routeCpf } = req.params;
-  const { title, content } = req.body;
 
-  const now = new Date();
+  noteSchema
+    .validate(req.body)
+    .then((newNote) => {
+      database.forEach((user) => {
+        if (user.cpf === routeCpf) {
+          user.notes.push(newNote);
 
-  const newNote = { id: uuidv4(), created_at: now, title, content };
-
-  database.forEach((user) => {
-    if (user.cpf === routeCpf) {
-      user.notes.push(newNote);
-
-      res.status(201).json({
-        message: `${newNote.title} was added into ${user.name}'s notes`,
+          res.status(201).json({
+            message: `${newNote.title} was added into ${user.name}'s notes`,
+          });
+        }
       });
-    }
-  });
+    })
+    .catch(() =>
+      res.status(400).json({ error: "fields either incorrect or missing" })
+    );
 });
 
 app.get("/users/:cpf/notes", verifyUser, (req, res) => {
