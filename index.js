@@ -7,7 +7,24 @@ app.use(express.json());
 
 let database = [];
 
-const validateCpf = (req, res, next) => {
+const userSchema = yup.object().shape({
+  notes: yup.array().default(() => []),
+  cpf: yup
+    .string()
+    .matches(/^(\d{3}.\d{3}.\d{3}-\d{2})|(\d{11})$/)
+    .required(),
+  name: yup.string().required(),
+  id: yup.string().default(uuidv4()),
+});
+
+const noteSchema = yup.object().shape({
+  content: yup.string().required(),
+  title: yup.string().required(),
+  created_at: yup.date().default(() => new Date()),
+  id: yup.string().default(uuidv4()),
+});
+
+const checkCpf = (req, res, next) => {
   const { cpf } = req.body;
 
   const cpfList = database.map((user) => user.cpf);
@@ -44,24 +61,7 @@ const verifyNote = (req, res, next) => {
   return next();
 };
 
-const userSchema = yup.object().shape({
-  notes: yup.array().default(() => []),
-  cpf: yup
-    .string()
-    .matches(/^(\d{3}.\d{3}.\d{3}-\d{2})|(\d{11})$/)
-    .required(),
-  name: yup.string().required(),
-  id: yup.string().default(uuidv4()),
-});
-
-const noteSchema = yup.object().shape({
-  content: yup.string().required(),
-  title: yup.string().required(),
-  created_at: yup.date().default(() => new Date()),
-  id: yup.string().default(uuidv4()),
-});
-
-app.post("/users", validateCpf, (req, res) => {
+app.post("/users", checkCpf, (req, res) => {
   userSchema
     .validate(req.body)
     .then((user) => {
@@ -78,7 +78,7 @@ app.get("/users", (_, res) => {
   res.status(200).json(database);
 });
 
-app.patch("/users/:cpf", verifyUser, validateCpf, (req, res) => {
+app.patch("/users/:cpf", verifyUser, checkCpf, (req, res) => {
   const { cpf: routeCpf } = req.params;
   const { cpf: newCpf, name: newName } = req.body;
 
